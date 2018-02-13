@@ -1,5 +1,5 @@
 package gol_prosedyre;
-
+// testtest
 public class CellGrid {
     
     private double boardheight;
