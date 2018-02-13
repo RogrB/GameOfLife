@@ -23,6 +23,3 @@ public class Main extends Application {
     }
     
 }
-
-
-// her er det endringer
