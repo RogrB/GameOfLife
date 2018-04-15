@@ -20,8 +20,12 @@ import javafx.scene.control.Slider;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
 import javafx.scene.control.Button;
+import patterns.ShapeCreator;
 
 public class MainController implements Initializable {
+    
+    private static MainController inst = new MainController();
+    public static MainController getInstance() { return inst; } 
     
     // Grid variabler
     private double boardwidth = 60;
@@ -29,9 +33,9 @@ public class MainController implements Initializable {
     private double cellSize = 13;
     private Color farge = Color.YELLOW;
 
-    CellGrid cells = new CellGrid(boardheight, boardwidth); 
+    CellGrid cells = CellGrid.getInstance();
+    ShapeCreator shape = new ShapeCreator();
     
-    // FXML Deklarering
     @FXML private MenuBar menuBar;
     @FXML private Canvas graphics;
     @FXML private ColorPicker colorPicker;
@@ -40,7 +44,6 @@ public class MainController implements Initializable {
     @FXML private Slider FPSSlider;
     @FXML private Button simKnapp;
     
-    // Animasjonskontrollere
     private double FPS = 2;
     private Timeline timeline = new Timeline();
     
@@ -52,15 +55,15 @@ public class MainController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // Metode for initialisering av brettet
-	colorPicker.setValue(farge);       // Setter opp grid ved launch 
-        cells.createGlider();        
-	draw();  
+        cells.init(boardheight, boardwidth);
+	colorPicker.setValue(farge); 
+        shape.Glider();
+	draw();
         
         ObservableList<String> premades = FXCollections.observableArrayList("Glider","Small Exploder","Exploder","10 Cell Row","Lightweight Spaceship","Tumbler","Clear");  // dropdown
         dropdown.setItems(premades);
         
-        // initialiserer animation data
+
         Duration duration = Duration.millis(1000/FPS);
         KeyFrame keyframe = new KeyFrame(duration, (ActionEvent e) -> {draw();});
         timeline.setCycleCount(Animation.INDEFINITE);
@@ -68,24 +71,27 @@ public class MainController implements Initializable {
         timeline.setRate(FPS);
     }
     
+    public CellGrid getCellGrid() {
+        return this.cells;
+    }
+    
     
     private void draw() {
-        // Metode for å tegne celler til canvas
     	GraphicsContext gc = graphics.getGraphicsContext2D();
 	gc.clearRect(0, 0, graphics.widthProperty().doubleValue(), graphics.heightProperty().doubleValue());
         
         for (int i = 0; i < boardwidth; i++) {
             for (int j = 0; j < boardheight; j++) {
                 if (cells.getCellState(j, i)) {
-                    gc.setFill(farge); // setter farge på levende celler
+                    gc.setFill(farge);
                 }                                                                                  
                 else {
-                    gc.setFill(Color.DARKGREY); // setter farge på døde celler
+                    gc.setFill(Color.DARKGREY);
                 }
-                gc.fillRect(i*cellSize+(i), j*cellSize+(j), cellSize, cellSize); // tegner individuelle celler som rektangler
+                gc.fillRect(i*cellSize+(i), j*cellSize+(j), cellSize, cellSize);
             }
         }
-        if(timeline.getStatus() == Animation.Status.RUNNING) { // animate      
+        if(timeline.getStatus() == Animation.Status.RUNNING) {  
             cells.checkNextGeneration();
         }
     }    
@@ -125,32 +131,34 @@ public class MainController implements Initializable {
         // Dropdown meny - velger mønster
         String state = dropdown.getValue().toString();
         switch (state) {
-            case "Glider": cells.createGlider();
-                           draw();
-                           break;
-            case "Small Exploder": cells.resetCells();
-                          cells.createSmallExploder();
-                          draw();
-                          break;
-            case "Exploder": cells.resetCells();
-                            cells.createExploder();
-                            draw();
-                            break;
-            case "10 Cell Row": cells.resetCells();
-                                cells.createTenRow();
-                                draw();
-                                break;
-            case "Lightweight Spaceship": cells.resetCells();
-                                          cells.createSpaceShip();
-                                          draw();
-                                          break;     
-            case "Tumbler": cells.resetCells();
-                            cells.createTumbler();
-                            draw();
-                            break;
-            case "Clear": cells.resetCells();
-                          draw();
-                          break;
+            case "Glider":
+                shape.Glider();
+                draw();
+                break;
+            case "Small Exploder":
+                shape.SmallExploder();
+                draw();
+                break;
+            case "Exploder":
+                shape.Exploder();
+                draw();
+                break;
+            case "10 Cell Row":
+                shape.TenCellRow();
+                draw();
+                break;
+            case "Lightweight Spaceship": 
+                shape.LighWeightSpaceShip();
+                draw();
+                break;     
+            case "Tumbler":
+                shape.Tumbler();
+                draw();
+                break;
+            case "Clear":
+                cells.resetCells();
+                draw();
+                break;
         }
 	draw();        
     }
@@ -175,30 +183,28 @@ public class MainController implements Initializable {
         draw();
     }
     
-    public void clicked(MouseEvent e) {
-        // Onclick Event - finner individuell celle som har blitt trykket på, finner status
-        // og setter levende eller død tilsvarende
-        
-        double x = e.getX(); // mouseX verdi
-        double y = e.getY(); // mouseY verdi
+    public void clicked(MouseEvent e) {  
+        // Onclick Event - for å kunne trykke på individuelle celler
+        double x = e.getX();
+        double y = e.getY();
         
         double rectX;
         double rectY;
 
         for (int i = 0; i < boardwidth; i++) {
             for (int j = 0; j < boardheight; j++) {
-                rectX = i*cellSize+(i); // startpunkt for cellenes X-verdi
-                rectY = j*cellSize+(j); // startpunkt for cellenes Y-verdi
+                rectX = i*cellSize+(i);
+                rectY = j*cellSize+(j);
                 
-                if (x > rectX && x < rectX+cellSize) { // sjekker om punktet som har blitt trykket på er innenfor angitt rektangel på X-aksen
-                    if (y > rectY && y < rectY+cellSize) { // sjekker om punktet er innenfor rektangel på Y-aksen
+                if (x > rectX && x < rectX+cellSize) {
+                    if (y > rectY && y < rectY+cellSize) {
                         
-                        if (cells.getCellState(j, i)) { // funnet riktig celle som har blitt trykket på - sjekker status på cellen
-                            cells.setCellState(j, i, false); // setter død
+                        if (cells.getCellState(j, i)) {
+                            cells.setCellState(j, i, false); 
                             draw();
                         }
                         else {
-                            cells.setCellState(j, i, true); // setter levende
+                            cells.setCellState(j, i, true);
                             draw();
                         }
                     }
