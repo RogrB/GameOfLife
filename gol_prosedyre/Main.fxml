@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import java.net.*?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Slider?>
+
+
+<GridPane xmlns:fx="http://javafx.com/fxml" fx:controller="gol_prosedyre.MainController">
+	
+	<!-- Menybar -->
+	<VBox prefWidth="700" GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.columnSpan="2" GridPane.rowSpan="1">
+            <MenuBar fx:id="menuBar" useSystemMenuBar="true">
+                    <menus>
+                            <Menu text="Fil">
+                                    <items>
+                            <MenuItem text="Lukk" onAction="#exitEvent" />
+                                    </items>
+                            </Menu>
+                    </menus>
+            </MenuBar>
+            <!-- Sim Knapper -->
+            <HBox spacing="20">
+                <padding><Insets top="10" right="20" bottom="10" left="20"/></padding>
+                <Button text="Simulate" onAction="#simulate" fx:id="simKnapp"/>
+                <HBox spacing="5">
+                    <padding><Insets top="4"/></padding>
+                    <Label text="Sim Speed"></Label>
+                    <Slider value="2.0" max="4" min="1.0" fx:id="FPSSlider" onMouseDragged="#setFPS" />
+                </HBox>
+            </HBox>
+	</VBox>
+	
+	<!-- Hovedvindu / canvas -->
+	<HBox styleClass="graphics" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="1" GridPane.rowSpan="1">
+		<stylesheets><URL value="@application.css" /></stylesheets>
+		<Canvas fx:id="graphics" width="800" height="800"  onMousePressed="#clicked" />
+	</HBox>
+	
+	<!-- Nederste menybar / knapper -->
+	<HBox GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="1" GridPane.rowSpan="1" spacing="20" prefHeight="70" >
+		<padding><Insets top="15" right="20" bottom="0" left="20"/></padding>
+		<Button text="Reset" onAction="#clearEvent" />
+		<ColorPicker fx:id="colorPicker" onAction="#newColorEvent" />
+                <VBox>
+                    <Label text="Størrelse">
+                        
+                    </Label>
+                    <Slider value="18.0" max="40.0" min="12.0" fx:id="sizeSlider" onMouseDragged="#newSizeEvent" />
+                </VBox>
+                <Button layoutX="126" layoutY="90" text="NextGen" onAction="#handleButtonAction" fx:id="button" />
+                <ChoiceBox fx:id="dropdown" value="Glider" onAction="#setPattern" ></ChoiceBox>
+	</HBox>
+
+</GridPane>
